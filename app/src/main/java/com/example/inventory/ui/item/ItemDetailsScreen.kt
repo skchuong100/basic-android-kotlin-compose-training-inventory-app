@@ -67,16 +67,15 @@ object ItemDetailsDestination : NavigationDestination {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemDetailsScreen(
-    navigateToEditItem: (Int) -> Unit,
-    navigateBack: () -> Unit,
-    navController: NavController,
-    modifier: Modifier = Modifier,
-    viewModel: ItemDetailsViewModel = viewModel(factory = AppViewModelProvider.Factory)
+    navigateToEditItem: (Int) -> Unit, // Function to navigate to item editing
+    navigateBack: () -> Unit, // Function to handle back navigation
+    navController: NavController, // Navigation controller for app navigation
+    modifier: Modifier = Modifier, // Modifier for styling and layout adjustments
+    viewModel: ItemDetailsViewModel = viewModel(factory = AppViewModelProvider.Factory) // View model for managing item details
 ) {
-    val uiState by viewModel.uiState.collectAsState() // Collect the UI state
-    //val itemDetails = uiState.itemDetails // Access the item details
+    val uiState by viewModel.uiState.collectAsState() // Collecting the UI state from the view model
 
-    val coroutineScope = rememberCoroutineScope()
+    val coroutineScope = rememberCoroutineScope() // Remembering a coroutine scope tied to this composable's lifecycle
 
     Scaffold(
         topBar = {
@@ -105,120 +104,114 @@ fun ItemDetailsScreen(
         modifier = modifier,
     ) { innerPadding ->
         ItemDetailsBody(
-            itemDetailsUiState = uiState,
-            onSellItem = { viewModel.reduceQuantityByOne() },
+            itemDetailsUiState = uiState, // UI state containing the item details
+            onSellItem = { viewModel.reduceQuantityByOne() }, // Function to handle selling an item
             onDelete = {
-                // Note: If the user rotates the screen very fast, the operation may get cancelled
-                // and the item may not be deleted from the Database. This is because when config
-                // change occurs, the Activity will be recreated and the rememberCoroutineScope will
-                // be cancelled - since the scope is bound to composition.
                 coroutineScope.launch {
-                    viewModel.deleteItem()
-                    navigateBack()
+                    viewModel.deleteItem() // Delete the item
+                    navigateBack() // Navigate back after deletion
                 }
             },
             onBuyItem = { quantity ->
-                viewModel.submitOrder(quantity)
+                viewModel.submitOrder(quantity) // Function to handle buying an item
             },
-            navController = navController,
-            coroutineScope = coroutineScope,
-            itemDetails = uiState.itemDetails,
-            viewModel = viewModel,
+            navController = navController, // Pass the navController
+            coroutineScope = coroutineScope, // Pass the coroutineScope
+            itemDetails = uiState.itemDetails, // Pass the item details
+            viewModel = viewModel, // Pass the viewModel
             modifier = Modifier
                 .padding(
                     start = innerPadding.calculateStartPadding(LocalLayoutDirection.current),
                     top = innerPadding.calculateTopPadding(),
                     end = innerPadding.calculateEndPadding(LocalLayoutDirection.current),
                 )
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(rememberScrollState()) // Make the body scrollable
         )
     }
 }
 
+// Composable function that defines the layout for displaying and interacting with the item details
 @Composable
 private fun ItemDetailsBody(
-    itemDetailsUiState: ItemDetailsUiState,
-    onSellItem: () -> Unit,
-    onDelete: () -> Unit,
-    onBuyItem: (Int) -> Unit,
-    navController: NavController,
-    modifier: Modifier = Modifier,
-    coroutineScope: CoroutineScope,
-    viewModel: ItemDetailsViewModel,
-    itemDetails: ItemDetails,
+    itemDetailsUiState: ItemDetailsUiState, // UI state for the item details
+    onSellItem: () -> Unit, // Function to sell the item
+    onDelete: () -> Unit, // Function to delete the item
+    onBuyItem: (Int) -> Unit, // Function to buy the item
+    navController: NavController, // Navigation controller
+    modifier: Modifier = Modifier, // Modifier for styling
+    coroutineScope: CoroutineScope, // Coroutine scope for launching asynchronous tasks
+    viewModel: ItemDetailsViewModel, // ViewModel for the item details logic
+    itemDetails: ItemDetails, // Item details data class
+) {
+    var quantity by rememberSaveable { mutableStateOf(1) } // Remember the quantity state across recompositions
 
-    ) {
-    var quantity by rememberSaveable { mutableStateOf(1) }
-
-    val item = itemDetailsUiState.itemDetails.toItem()
+    val item = itemDetailsUiState.itemDetails.toItem() // Convert the itemDetailsUiState to Item data class
     Column(
-        modifier = modifier.padding(dimensionResource(id = R.dimen.padding_medium)),
-        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
+        modifier = modifier.padding(dimensionResource(id = R.dimen.padding_medium)), // Apply padding
+        verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium)) // Arrange elements with space in between
     ) {
-        var deleteConfirmationRequired by rememberSaveable { mutableStateOf(false) }
+        var deleteConfirmationRequired by rememberSaveable { mutableStateOf(false) } // State to trigger delete confirmation dialog
         ItemDetails(
-            item = itemDetailsUiState.itemDetails.toItem(), modifier = Modifier.fillMaxWidth(),
-
+            item = itemDetailsUiState.itemDetails.toItem(), // Display the item details
+            modifier = Modifier.fillMaxWidth(), // Fill the width
         )
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(), // Fill the width for the row
+            verticalAlignment = Alignment.CenterVertically // Center items vertically
         ) {
-            var quantity by rememberSaveable { mutableStateOf(1) }
+            var quantity by rememberSaveable { mutableStateOf(1) } // Remember the quantity state
             OutlinedTextField(
-                value = quantity.toString(),
-                onValueChange = { newQuantity -> quantity = newQuantity.toIntOrNull() ?: 1 },
-                label = { Text(stringResource(R.string.quantity)) },
-                modifier = Modifier.weight(1f),
+                value = quantity.toString(), // Display the quantity
+                onValueChange = { newQuantity -> quantity = newQuantity.toIntOrNull() ?: 1 }, // Update the quantity on change
+                label = { Text(stringResource(R.string.quantity)) }, // Label for the quantity field
+                modifier = Modifier.weight(1f), // Fill the available space
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    keyboardType = KeyboardType.Number
+                    keyboardType = KeyboardType.Number // Set the keyboard type to number
                 ),
-                singleLine = true
+                singleLine = true // Single line input
             )
             Button(
                 onClick = {
                     coroutineScope.launch {
-                        // Use the state directly. There is no 'value' property needed.
+                        // Launch asynchronous tasks
                         val quantityInt = quantity
-                        viewModel.submitOrder(quantityInt)
+                        viewModel.submitOrder(quantityInt) // Submit the order
 
-                        // Use the uiState directly. Again, no 'value' property is needed.
-
-                        val totalCost = item.price * quantityInt
+                        val totalCost = item.price * quantityInt // Calculate the total cost
                         navController.navigate(
                             "purchaseConfirmation/${item.name}/${item.price}/$quantityInt/$totalCost/${item.quantity - quantityInt}"
-                        )
+                        ) // Navigate to purchase confirmation
                     }
                 },
-                modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_medium)),
-                shape = MaterialTheme.shapes.small,
+                modifier = Modifier.padding(start = dimensionResource(id = R.dimen.padding_medium)), // Apply padding
+                shape = MaterialTheme.shapes.small, // Apply shape
             ) {
-                Text(stringResource(R.string.buy))
+                Text(stringResource(R.string.buy)) // Display the buy button
             }
         }
         Button(
-            onClick = onSellItem,
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.small,
-            enabled = !itemDetailsUiState.outOfStock
+            onClick = onSellItem, // Handle sell item
+            modifier = Modifier.fillMaxWidth(), // Fill the width
+            shape = MaterialTheme.shapes.small, // Apply shape
+            enabled = !itemDetailsUiState.outOfStock // Enable button based on stock availability
         ) {
-            Text(stringResource(R.string.sell))
+            Text(stringResource(R.string.sell)) // Display the sell button
         }
         OutlinedButton(
-            onClick = { deleteConfirmationRequired = true },
-            shape = MaterialTheme.shapes.small,
-            modifier = Modifier.fillMaxWidth()
+            onClick = { deleteConfirmationRequired = true }, // Trigger delete confirmation
+            shape = MaterialTheme.shapes.small, // Apply shape
+            modifier = Modifier.fillMaxWidth() // Fill the width
         ) {
-            Text(stringResource(R.string.delete))
+            Text(stringResource(R.string.delete)) // Display the delete button
         }
         if (deleteConfirmationRequired) {
             DeleteConfirmationDialog(
                 onDeleteConfirm = {
                     deleteConfirmationRequired = false
-                    onDelete()
+                    onDelete() // Confirm deletion
                 },
-                onDeleteCancel = { deleteConfirmationRequired = false },
-                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_medium))
+                onDeleteCancel = { deleteConfirmationRequired = false }, // Cancel deletion
+                modifier = Modifier.padding(dimensionResource(id = R.dimen.padding_medium)) // Apply padding
             )
         }
     }
@@ -276,52 +269,40 @@ fun ItemDetails(
     }
 }
 
+// Composable function that displays a single row of item details
 @Composable
 private fun ItemDetailsRow(
-    @StringRes labelResID: Int, itemDetail: String, modifier: Modifier = Modifier
+    @StringRes labelResID: Int, // Resource ID for the label
+    itemDetail: String, // Detail to display
+    modifier: Modifier = Modifier // Modifier for styling
 ) {
     Row(modifier = modifier) {
-        Text(text = stringResource(labelResID))
-        Spacer(modifier = Modifier.weight(1f))
-        Text(text = itemDetail, fontWeight = FontWeight.Bold)
+        Text(text = stringResource(labelResID)) // Display the label
+        Spacer(modifier = Modifier.weight(1f)) // Spacer to push content to the ends
+        Text(text = itemDetail, fontWeight = FontWeight.Bold) // Display the item detail with bold weight
     }
 }
 
+// Composable function for displaying a confirmation dialog for deletion
 @Composable
 private fun DeleteConfirmationDialog(
-    onDeleteConfirm: () -> Unit, onDeleteCancel: () -> Unit, modifier: Modifier = Modifier
+    onDeleteConfirm: () -> Unit, // Function to confirm deletion
+    onDeleteCancel: () -> Unit, // Function to cancel deletion
+    modifier: Modifier = Modifier // Modifier for styling
 ) {
-    AlertDialog(onDismissRequest = { /* Do nothing */ },
-        title = { Text(stringResource(R.string.attention)) },
-        text = { Text(stringResource(R.string.delete_question)) },
-        modifier = modifier,
+    AlertDialog(
+        onDismissRequest = { /* Do nothing on dismiss */ },
+        title = { Text(stringResource(R.string.attention)) }, // Title for the dialog
+        text = { Text(stringResource(R.string.delete_question)) }, // Text content for the dialog
+        modifier = modifier, // Apply the modifier
         dismissButton = {
             TextButton(onClick = onDeleteCancel) {
-                Text(text = stringResource(R.string.no))
+                Text(text = stringResource(R.string.no)) // No button text
             }
         },
         confirmButton = {
             TextButton(onClick = onDeleteConfirm) {
-                Text(text = stringResource(R.string.yes))
+                Text(text = stringResource(R.string.yes)) // Yes button text
             }
         })
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun ItemDetailsScreenPreview() {
-//    InventoryTheme {
-//        val mockNavController = rememberNavController() // Create a mock NavController
-//        ItemDetailsBody(
-//            itemDetailsUiState = ItemDetailsUiState(
-//                outOfStock = true,
-//                itemDetails = ItemDetails(1, "Pen", "$100", "10")
-//            ),
-//            onSellItem = {},
-//            onDelete = {},
-//            onBuyItem = { _ -> },
-//            navController = mockNavController, // Use the mock NavController
-//            modifier = Modifier
-//        )
-//    }
-//}

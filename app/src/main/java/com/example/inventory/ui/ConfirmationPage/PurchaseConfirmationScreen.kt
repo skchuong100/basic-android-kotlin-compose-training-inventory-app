@@ -1,5 +1,6 @@
 package com.example.inventory.ui.ConfirmationPage
 
+// Import statements bring in necessary libraries and components for the UI elements and functionality
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -31,22 +32,25 @@ import com.example.inventory.InventoryTopAppBar
 import com.example.inventory.R
 import com.example.inventory.data.PurchaseDetails
 
-
+// This annotation flags that the following Composable function uses experimental API features.
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PurchaseConfirmationScreen(
-    navController: NavController,
-    purchaseDetails: PurchaseDetails
+    navController: NavController, // NavController for managing navigation within the app
+    purchaseDetails: PurchaseDetails // Data class containing details about the purchase
 ) {
+    // Scaffold is a layout structure that provides a consistent layout structure to UIs
     Scaffold(
         topBar = {
+            // Custom top bar component for the app
             InventoryTopAppBar(
-                title = stringResource(R.string.purchase_confirmation_title),
-                canNavigateBack = true,
-                navigateUp = { navController.navigateUp() }
+                title = stringResource(R.string.purchase_confirmation_title), // Set the title from string resources
+                canNavigateBack = true, // Allows navigating back in the navigation stack
+                navigateUp = { navController.navigateUp() } // Handler when the back action is triggered
             )
         }
     ) { innerPadding ->
+        // Content of the screen, displaying item details with appropriate padding
         ItemDetails(
             purchaseDetails = purchaseDetails,
             modifier = Modifier
@@ -58,6 +62,7 @@ fun PurchaseConfirmationScreen(
 
 @Composable
 fun ItemDetails(purchaseDetails: PurchaseDetails, modifier: Modifier = Modifier) {
+    // Card component that wraps item details
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
@@ -65,12 +70,14 @@ fun ItemDetails(purchaseDetails: PurchaseDetails, modifier: Modifier = Modifier)
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer
         )
     ) {
+        // Vertical layout for item details
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(dimensionResource(id = R.dimen.padding_medium)),
             verticalArrangement = Arrangement.spacedBy(dimensionResource(id = R.dimen.padding_medium))
         ) {
+            // Repeated component for each detail row, showing various attributes of the purchase
             ItemDetailsRow(
                 labelResID = R.string.item,
                 itemDetail = purchaseDetails.productName,
@@ -78,6 +85,7 @@ fun ItemDetails(purchaseDetails: PurchaseDetails, modifier: Modifier = Modifier)
                     horizontal = dimensionResource(id = R.dimen.padding_medium)
                 )
             )
+            // Repeated usage of ItemDetailsRow for different attributes
             ItemDetailsRow(
                 labelResID = R.string.quantity_ordered,
                 itemDetail = purchaseDetails.quantityOrdered.toString(),
@@ -110,14 +118,19 @@ fun ItemDetails(purchaseDetails: PurchaseDetails, modifier: Modifier = Modifier)
     }
 }
 
+// Helper Composable function to display a row of item details
 @Composable
 private fun ItemDetailsRow(
-    @StringRes labelResID: Int, itemDetail: String, modifier: Modifier = Modifier
+    @StringRes labelResID: Int, // Resource ID for label text
+    itemDetail: String, // Detail text to display
+    modifier: Modifier = Modifier // Modifier for styling and layout adjustments
 ) {
     Row(modifier = modifier) {
+        // Displays the label from resources
         Text(text = stringResource(labelResID))
+        // Spacer to create space between label and detail
         Spacer(modifier = Modifier.weight(1f))
+        // Displays item detail, with emphasis using bold font
         Text(text = itemDetail, fontWeight = FontWeight.Bold)
     }
 }
-

@@ -1,21 +1,6 @@
-/*
- * Copyright (C) 2023 The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example.inventory.ui.home
 
+// Importing necessary libraries and components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -48,136 +33,142 @@ import com.example.inventory.ui.item.formatedPrice
 import com.example.inventory.ui.navigation.NavigationDestination
 import com.example.inventory.ui.theme.InventoryTheme
 
+// Object representing navigation destination specifics for the home screen
 object HomeDestination : NavigationDestination {
     override val route = "home"
     override val titleRes = R.string.app_name
 }
+
+// Entry point for the Home screen, utilizing Compose's experimental material API
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navController: NavController,
-    navigateToItemEntry: () -> Unit,
-    navigateToItemUpdate: (Int) -> Unit,
-    viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory),
-    modifier: Modifier = Modifier
+    navController: NavController, // NavController to handle navigation
+    navigateToItemEntry: () -> Unit, // Lambda function to handle navigation to item entry screen
+    navigateToItemUpdate: (Int) -> Unit, // Lambda function to handle navigation to item update screen
+    viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory), // ViewModel that handles the logic for the Home screen
+    modifier: Modifier = Modifier // Modifier for styling
 ) {
-    val homeUiState by viewModel.homeUiState.collectAsState()
-    val searchTextState = remember { mutableStateOf("") }
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val homeUiState by viewModel.homeUiState.collectAsState() // Collecting UI state as a state object
+    val searchTextState = remember { mutableStateOf("") } // Remembering the search text across recompositions
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior() // Defines the scroll behavior for the top app bar
 
+    // Main layout structure with a top bar and floating action button
     Scaffold(
-        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // Applying nested scroll behavior
         topBar = {
             InventoryTopAppBar(
-                title = stringResource(id = R.string.app_name),
-                canNavigateBack = navController.previousBackStackEntry != null,
-                navigateUp = { navController.navigateUp() },
-                scrollBehavior = scrollBehavior
+                title = stringResource(id = R.string.app_name), // Title for the top app bar
+                canNavigateBack = navController.previousBackStackEntry != null, // Enables back navigation if possible
+                navigateUp = { navController.navigateUp() }, // Action on back navigation
+                scrollBehavior = scrollBehavior // Applies the defined scroll behavior
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = navigateToItemEntry,
-                shape = MaterialTheme.shapes.medium,
+                onClick = navigateToItemEntry, // Navigation action for the floating action button
+                shape = MaterialTheme.shapes.medium, // Shape theming for the button
                 modifier = Modifier
                     .padding(end = WindowInsets.safeDrawing.asPaddingValues().calculateEndPadding(LocalLayoutDirection.current))
             ) {
-                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.item_entry_title))
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.item_entry_title)) // Icon for the button
             }
         },
     ) { innerPadding ->
         HomeBody(
-            itemList = homeUiState.itemList,
-            onItemClick = navigateToItemUpdate,
-            searchTextState = searchTextState,
-            onSearchTriggered = { searchText -> viewModel.searchProduct(searchText) },
-            modifier = Modifier.padding(innerPadding).fillMaxSize(),
-            contentPadding = PaddingValues(top = 8.dp)
+            itemList = homeUiState.itemList, // List of items to display
+            onItemClick = navigateToItemUpdate, // Action on item click
+            searchTextState = searchTextState, // Search text state
+            onSearchTriggered = { searchText -> viewModel.searchProduct(searchText) }, // Action on search trigger
+            modifier = Modifier.padding(innerPadding).fillMaxSize(), // Applying padding and filling size
+            contentPadding = PaddingValues(top = 8.dp) // Additional padding for content
         )
     }
 }
 
+// Component displaying the body of the home screen including a search bar and item list
 @Composable
 private fun HomeBody(
-    itemList: List<Item>,
-    onItemClick: (Int) -> Unit,
-    searchTextState: MutableState<String>,
-    onSearchTriggered: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    contentPadding: PaddingValues
+    itemList: List<Item>, // List of items to display
+    onItemClick: (Int) -> Unit, // Action on item click
+    searchTextState: MutableState<String>, // Mutable state for the search text
+    onSearchTriggered: (String) -> Unit, // Action on search trigger
+    modifier: Modifier = Modifier, // Modifier for styling
+    contentPadding: PaddingValues // Padding for the content
 ) {
-    Column(modifier = modifier.padding(contentPadding)) {
+    Column(modifier = modifier.padding(contentPadding)) { // Vertical arrangement
         OutlinedTextField(
-            value = searchTextState.value,
+            value = searchTextState.value, // Current value of the search field
             onValueChange = {
                 searchTextState.value = it
                 onSearchTriggered(it)
             },
-            label = { Text("Search by ID or Name") },
-            singleLine = true,
+            label = { Text("Search by ID or Name") }, // Label for the search field
+            singleLine = true, // Limits to a single line input
             trailingIcon = {
-                IconButton(onClick = { onSearchTriggered(searchTextState.value) }) {
+                IconButton(onClick = { onSearchTriggered(searchTextState.value) }) { // Icon button for search action
                     Icon(Icons.Filled.Search, contentDescription = "Search")
                 }
             },
-            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
+            keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search), // Keyboard options for the search action
             keyboardActions = KeyboardActions(onSearch = {
-                onSearchTriggered(searchTextState.value)
+                onSearchTriggered(searchTextState.value) // Defines action on keyboard search action
             }),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp) // Modifiers for width and padding
         )
-        if (itemList.isEmpty()) {
+        if (itemList.isEmpty()) { // Conditionally display text if the list is empty
             Text(
-                text = stringResource(R.string.no_item_description),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(16.dp)
+                text = stringResource(R.string.no_item_description), // Text for no items
+                textAlign = TextAlign.Center, // Center alignment
+                style = MaterialTheme.typography.titleLarge, // Styling
+                modifier = Modifier.padding(16.dp) // Padding
             )
-        } else {
+        } else { // Displaying list of items using LazyColumn for efficient rendering
             LazyColumn(modifier = Modifier.padding(top = 8.dp)) {
-                items(items = itemList, key = { it.id }) { item ->
+                items(items = itemList, key = { it.id }) { item -> // Defining items and keys
                     InventoryItem(item = item, modifier = Modifier
                         .padding(horizontal = 16.dp, vertical = 4.dp)
-                        .clickable { onItemClick(item.id) })
+                        .clickable { onItemClick(item.id) }) // Item component with click handling
                 }
             }
         }
     }
 }
 
+// Component for displaying a single inventory item
 @Composable
 private fun InventoryItem(
-    item: Item, modifier: Modifier = Modifier
+    item: Item, modifier: Modifier = Modifier // Item data and modifier for styling
 ) {
     Card(
-        modifier = modifier, elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        modifier = modifier, elevation = CardDefaults.cardElevation(defaultElevation = 2.dp) // Card styling with elevation
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(16.dp), // Padding within the card
+            verticalArrangement = Arrangement.spacedBy(8.dp) // Spacing between elements
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth() // Filling the width
             ) {
                 Text(
-                    text = item.name,
-                    style = MaterialTheme.typography.titleLarge,
+                    text = item.name, // Display item name
+                    style = MaterialTheme.typography.titleLarge, // Styling for the text
                 )
-                Spacer(Modifier.weight(1f))
+                Spacer(Modifier.weight(1f)) // Spacer to push elements to opposite ends
                 Text(
-                    text = item.formatedPrice(),
-                    style = MaterialTheme.typography.titleMedium
+                    text = item.formatedPrice(), // Display formatted price
+                    style = MaterialTheme.typography.titleMedium // Styling for the price text
                 )
             }
             Text(
-                text = stringResource(R.string.in_stock, item.quantity),
-                style = MaterialTheme.typography.titleMedium
+                text = stringResource(R.string.in_stock, item.quantity), // Display stock quantity
+                style = MaterialTheme.typography.titleMedium // Styling for the text
             )
         }
     }
 }
 
-
+// Preview annotations for visualizing the components in the Android Studio design editor
 @Preview(showBackground = true)
 @Composable
 fun HomeBodyPreview() {
@@ -190,7 +181,7 @@ fun HomeBodyPreview() {
     InventoryTheme {
         HomeBody(
             itemList = mockItems,
-            onItemClick = {},  // You might need to handle navigation or actions in real previews
+            onItemClick = {},  // No navigation handling necessary for preview
             searchTextState = searchTextState,
             onSearchTriggered = {},
             contentPadding = PaddingValues(16.dp)
@@ -222,4 +213,3 @@ fun InventoryItemPreview() {
         )
     }
 }
-

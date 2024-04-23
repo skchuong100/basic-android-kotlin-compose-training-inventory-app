@@ -35,49 +35,50 @@ import com.example.inventory.ui.item.ItemEntryDestination
 import com.example.inventory.ui.item.ItemEntryScreen
 
 /**
- * Provides Navigation graph for the application.
+ * Provides the navigation graph for the application using Jetpack Compose Navigation component.
+ * This function defines all the navigation routes and the corresponding screens for the app.
  */
 @Composable
 fun InventoryNavHost(
-    navController: NavHostController,
-    modifier: Modifier = Modifier,
+    navController: NavHostController, // Controller for managing app navigation
+    modifier: Modifier = Modifier // Modifier for customizing the layout further
 ) {
     NavHost(
         navController = navController,
-        startDestination = HomeDestination.route,
+        startDestination = HomeDestination.route, // Starting point in the navigation graph
         modifier = modifier
     ) {
-        composable(route = HomeDestination.route) {
+        composable(route = HomeDestination.route) { // Home screen route
             HomeScreen(
                 navController = navController, // Pass NavController here
-                navigateToItemEntry = { navController.navigate(ItemEntryDestination.route) },
-                navigateToItemUpdate = { itemId ->
+                navigateToItemEntry = { navController.navigate(ItemEntryDestination.route) }, // Navigate to item entry screen
+                navigateToItemUpdate = { itemId -> // Navigate to item details screen
                     navController.navigate("${ItemDetailsDestination.route}/$itemId")
                 }
             )
         }
-        composable(route = ItemEntryDestination.route) {
+        composable(route = ItemEntryDestination.route) { // Item entry screen route
             ItemEntryScreen(
-                navigateBack = { navController.popBackStack() },
-                onNavigateUp = { navController.navigateUp() }
+                navigateBack = { navController.popBackStack() }, // Handle back navigation
+                onNavigateUp = { navController.navigateUp() } // Handle up navigation
             )
         }
         composable(
-            route = ItemDetailsDestination.routeWithArgs,
-            arguments = listOf(navArgument(ItemDetailsDestination.itemIdArg) {
+            route = ItemDetailsDestination.routeWithArgs, // Item details screen with arguments
+            arguments = listOf(navArgument(ItemDetailsDestination.itemIdArg) { // Argument for item ID
                 type = NavType.IntType
             })
         ) {
-            // Pass navController to ItemDetailsScreen
             ItemDetailsScreen(
-                navigateToEditItem = { itemId ->
+                navigateToEditItem = { itemId -> // Navigate to item edit screen
                     navController.navigate("${ItemEditDestination.route}/$itemId")
                 },
-                navigateBack = { navController.navigateUp() },
-                navController = navController // Add this line
+                navigateBack = { navController.navigateUp() }, // Handle back navigation
+                navController = navController // Pass the NavController
             )
         }
-        composable(route = "purchaseConfirmation/{productName}/{pricePerItem}/{quantityOrdered}/{totalCost}/{itemsLeftInInventory}",
+        composable(
+            route = "purchaseConfirmation/{productName}/{pricePerItem}/{quantityOrdered}/{totalCost}/{itemsLeftInInventory}", // Purchase confirmation screen with arguments
             arguments = listOf(
                 navArgument("productName") { type = NavType.StringType },
                 navArgument("pricePerItem") { type = NavType.StringType },
@@ -89,11 +90,11 @@ fun InventoryNavHost(
             PurchaseConfirmationScreen(
                 navController = navController,
                 purchaseDetails = PurchaseDetails(
-                    productName = backStackEntry.arguments?.getString("productName") ?: "",
-                    pricePerItem = backStackEntry.arguments?.getString("pricePerItem") ?: "",
-                    quantityOrdered = backStackEntry.arguments?.getInt("quantityOrdered") ?: 0,
-                    totalCost = backStackEntry.arguments?.getString("totalCost") ?: "",
-                    itemsLeftInInventory = backStackEntry.arguments?.getInt("itemsLeftInInventory") ?: 0
+                    productName = backStackEntry.arguments?.getString("productName") ?: "", // Retrieve the product name from arguments
+                    pricePerItem = backStackEntry.arguments?.getString("pricePerItem") ?: "", // Retrieve the price per item from arguments
+                    quantityOrdered = backStackEntry.arguments?.getInt("quantityOrdered") ?: 0, // Retrieve the quantity ordered from arguments
+                    totalCost = backStackEntry.arguments?.getString("totalCost") ?: "", // Retrieve the total cost from arguments
+                    itemsLeftInInventory = backStackEntry.arguments?.getInt("itemsLeftInInventory") ?: 0 // Retrieve the items left in inventory from arguments
                 )
             )
         }
